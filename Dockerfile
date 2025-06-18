@@ -1,17 +1,21 @@
-# Stage 1: Build the Go app
-FROM golang:1.21 AS builder
+# ---------- Build stage ----------
+FROM golang:1.23 AS builder
 
 WORKDIR /app
+
+COPY go.mod ./
+RUN go mod download
+
 COPY . .
-RUN go mod init vnypdb-app
-RUN go mod tidy
+
+ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 RUN go build -o app main.go
 
-# Stage 2: Final lightweight image
+# ---------- Final stage ----------
 FROM alpine:latest
 
-WORKDIR /root/
+WORKDIR /root
 COPY --from=builder /app/app .
 
-EXPOSE 8080
+EXPOSE 9090
 CMD ["./app"]
