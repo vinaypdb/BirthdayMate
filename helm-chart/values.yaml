@@ -1,6 +1,0 @@
-image:
-  repository: vnypdb-app
-  tag: latest
-  pullPolicy: IfNotPresent
-
-containerPort: 9090
