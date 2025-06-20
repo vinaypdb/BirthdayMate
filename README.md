@@ -1,56 +1,60 @@
+
 # 🎂 BirthdayMate
 
-**BirthdayMate** is a Go-based web application that lets users:
+**BirthdayMate** is a Go‑based web application that lets users:
 
 * Enter their date of birth
 * View their current age
+* know how many times their birthday has fallen on a sundays so far
 * Discover celebrities who share their birthday
 
 ---
 
-## 🧰 Tech Stack
+## 🧰 Tech Stack
 
 * **Language:** Go (Golang)
 * **Containerization:** Docker
 * **CI:** GitHub Actions
-* **Docker Registry:** Docker Hub
+* **Security Scans:** Trivy & OWASP Dependency‑Check
+* **Registry:** Docker Hub
 
 ---
 
-## 📁 Project Structure
+## 📁 Project Structure
 
-```
+```text
 .
 ├── Dockerfile                 # Docker build instructions
 ├── go.mod                     # Go module file
 ├── main.go                    # Application source code
-├── Makefile                   # (Optional) Build commands
+├── Makefile                   # (Optional) build/run helpers
 └── .github/workflows/ci.yaml  # CI pipeline config
 ```
 
 ---
 
-## 🚀 Steps Followed to Achieve Working CI (GitHub Actions)
+## 🚀 How We Built a Passing CI Pipeline
 
-Here's what was done step-by-step to make CI fully functional:
+Below is the exact sequence of steps we followed.
 
-### 1. ✅ Initialize Go Project
+### 1  ✅ Create & Initialise Go Module
 
 ```bash
+mkdir BirthdayMate && cd BirthdayMate
 go mod init birthdaymate
 go mod tidy
 ```
 
-### 2. ✅ Write Application Code
+### 2  ✅ Write Application Code
 
-Created `main.go` to accept user input and print age + matching celebrity birthdays.
+`main.go` accepts a birth‑date, calculates age and lists celebrity “birthday twins”.
 
-### 3. ✅ Dockerize the App
+### 3  ✅ Dockerise the App
 
-Created a multi-stage `Dockerfile` to build the Go binary and copy it into a minimal Alpine image:
+Multi‑stage `Dockerfile` (Alpine final image, 19 MB):
 
 ```dockerfile
-# Build Stage
+# ---------- Build stage ----------
 FROM golang:1.23 AS builder
 WORKDIR /app
 COPY go.mod ./
@@ -58,7 +62,7 @@ RUN go mod download
 COPY . .
 RUN go build -o app main.go
 
-# Final Image
+# ---------- Final stage ----------
 FROM alpine:latest
 WORKDIR /root
 COPY --from=builder /app/app .
@@ -66,28 +70,29 @@ EXPOSE 9090
 CMD ["./app"]
 ```
 
-### 4. ✅ Build Docker Image Locally
+### 4  ✅ Local Image Build & Test
 
 ```bash
 docker build -t vinaypdb/birthdaymate:latest .
 ```
 
-### 5. ✅ Push Image to Docker Hub
+### 5  ✅ Push Image to Docker Hub (Manual First Push)
 
 ```bash
 docker login
 docker push vinaypdb/birthdaymate:latest
 ```
 
-### 6. ✅ Set Up CI with GitHub Actions
+### 6  ✅ Add CI Workflow (`.github/workflows/ci.yaml`)
 
-Created `.github/workflows/ci.yaml` with these steps:
+Main stages:
 
-* Checkout source code
-* Set up Go environment
-* Build & test Go app
-* Log in to Docker Hub
-* Build and push Docker image
+* Checkout ⬇️
+* Go build & unit tests ✅
+* **OWASP Dependency‑Check** (Go modules CVE scan) 🛡
+* Docker login & image build 🐳
+* **Trivy image scan** (fail on HIGH/CRITICAL) 🔍
+* Push to Docker Hub ☁️
 
 ```yaml
 name: CI Pipeline
@@ -101,19 +106,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout source code
+    - name: Checkout code
       uses: actions/checkout@v3
 
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.21'
+        go-version: "1.21"
 
-    - name: Build Go app
-      run: go build -v ./...
+    - name: Build & test
+      run: |
+        go build -v ./...
+        go test  -v ./...
 
-    - name: Run Go tests
-      run: go test -v ./...
+    - name: OWASP Dependency‑Check
+      uses: dependency-check/Dependency-Check_Action@main
+      with:
+        project: "BirthdayMate"
+        path: "."
+        format: "SARIF"
+        out: "dependency-check-report"
 
     - name: Log in to DockerHub
       uses: docker/login-action@v3
@@ -124,32 +136,38 @@ jobs:
     - name: Build Docker image
       run: docker build -t ${{ secrets.DOCKER_USERNAME }}/birthdaymate:latest .
 
+    - name: Trivy Image Scan
+      uses: aquasecurity/trivy-action@0.12.0
+      with:
+        image-ref: ${{ secrets.DOCKER_USERNAME }}/birthdaymate:latest
+        format: table
+        exit-code: 1          # fail on HIGH/CRITICAL
+        ignore-unfixed: true
+
     - name: Push Docker image
       run: docker push ${{ secrets.DOCKER_USERNAME }}/birthdaymate:latest
 ```
 
-### 7. ✅ Add GitHub Secrets
+### 7  ✅ Add GitHub Secrets
 
-In the GitHub repository → **Settings → Secrets → Actions**, added:
+`Settings → Secrets → Actions`
 
 * `DOCKER_USERNAME`
 * `DOCKER_PASSWORD`
 
-### 8. ✅ Triggered CI by Pushing to `main`
+### 8  ✅ Commit & Push — CI Passes
 
 ```bash
 git add .
-git commit -m "✅ Setup complete: Go app + Docker + GitHub Actions"
+git commit -m "🎉 Fully‑automated CI with security scans"
 git push origin main
 ```
 
-️➡️ CI ran automatically and pushed the Docker image to Docker Hub successfully!
+GitHub Actions now builds, scans and publishes the image **automatically** on every push to `main`.
 
 ---
 
-## 📆 Docker Hub
-
-Pull the built image from Docker Hub:
+## 🐳 Docker Hub
 
 ```bash
 docker pull vinaypdb/birthdaymate:latest
@@ -157,16 +175,15 @@ docker pull vinaypdb/birthdaymate:latest
 
 ---
 
-## ✅ Next Steps (Optional)
+## 📌 Next Steps (Part 2)
 
-* [ ] Setup Helm chart for Kubernetes deployment
-* [ ] Configure Argo CD for GitOps delivery
-* [ ] Deploy to Amazon EKS
+* [ ] Scaffold Helm chart for Kubernetes deployments
+* [ ] Configure Argo CD for GitOps CD
+* [ ] Deploy to Amazon EKS (Terraform)
 
 ---
 
-## 🙌 Author
+## 🙌 Author
 
-**Vinay Pedapuri**
-[Docker Hub](https://hub.docker.com/u/vinaypdb) • [GitHub](https://github.com/vinaypdb)
+**Vinay Pedapuri**  ⋅  [Docker Hub](https://hub.docker.com/u/vinaypdb) ⋅  [GitHub](https://github.com/vinaypdb)
 
