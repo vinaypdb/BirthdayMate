@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout source code
+    - name: Checkout code
       uses: actions/checkout@v3
 
     - name: Set up Go
@@ -23,6 +23,15 @@ jobs:
     - name: Run Go tests
       run: go test -v ./...
 
+    # ✅ OWASP Dependency-Check (Go modules vulnerability scan)
+    - name: OWASP Dependency-Check
+      uses: dependency-check/Dependency-Check_Action@v3
+      with:
+        project: "BirthdayMate"
+        path: "."
+        format: "SARIF"
+        out: "dependency-check-report"
+
     - name: Log in to DockerHub
       uses: docker/login-action@v3
       with:
@@ -32,5 +41,15 @@ jobs:
     - name: Build Docker image
       run: docker build -t ${{ secrets.DOCKER_USERNAME }}/birthdaymate:latest .
 
+    # ✅ Trivy scan on the Docker image
+    - name: Trivy Image Scan
+      uses: aquasecurity/trivy-action@v0.16.1
+      with:
+        image-ref: ${{ secrets.DOCKER_USERNAME }}/birthdaymate:latest
+        format: table
+        exit-code: 1
+        ignore-unfixed: true
+
     - name: Push Docker image
       run: docker push ${{ secrets.DOCKER_USERNAME }}/birthdaymate:latest
+
