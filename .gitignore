@@ -1,25 +1,18 @@
-# Binaries
+# Go build outputs
+/bin/
 *.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-*.test
 *.out
 
-# Build folders
-bin/
-build/
+# Logs
+*.log
 
-# Local environment files
-.env
-.env.*
-
-# IDE and editor folders
+# IDE/editor settings
 .vscode/
 .idea/
-*.swp
 
-# OS-generated files
+# OS generated files
 .DS_Store
-Thumbs.db
+
+# Dependency directories
+vendor/
+
