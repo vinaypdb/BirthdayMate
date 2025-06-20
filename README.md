@@ -1,4 +1,3 @@
-
 # 🎂 BirthdayMate
 
 **BirthdayMate** is a Go‑based web application that lets users:
@@ -186,4 +185,12 @@ docker pull vinaypdb/birthdaymate:latest
 ## 🙌 Author
 
 **Vinay Pedapuri**  ⋅  [Docker Hub](https://hub.docker.com/u/vinaypdb) ⋅  [GitHub](https://github.com/vinaypdb)
+
+---
+
+## 🙏 Acknowledgments
+
+* 💡 **Application logic inspiration** was initiated and enhanced using **Gemini 2.5 Pro**.
+* 🤝 **Project guidance, DevOps practices, and CI pipeline automation** were assisted and reviewed through **ChatGPT (OpenAI)**.
+* ✍️ Special thanks to the AI tools that made this development smooth and structured.
 
