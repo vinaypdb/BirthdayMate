@@ -176,9 +176,8 @@ docker pull vinaypdb/birthdaymate:latest
 
 ## 📌 Next Steps (Part 2)
 
-* [ ] Scaffold Helm chart for Kubernetes deployments
-* [ ] Configure Argo CD for GitOps CD
-* [ ] Deploy to Amazon EKS (Terraform)
+✅ Deployment on Minikube using Kubernetes YAMLs
+✅ GitOps Continuous Delivery using Argo CD
 
 ---
 
