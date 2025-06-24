@@ -2035,7 +2035,7 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	http.HandleFunc("/", indexHandler)
 	http.HandleFunc("/greet", greetingHandler)
-	fmt.Println("Server starting on http://localhost:9090")
+	fmt.Println("Server starting on http://0.0.0.0:9090")
 	fmt.Println("Press Ctrl+C to stop the server.")
 	if err := http.ListenAndServe(":9090", nil); err != nil {
 		panic(err)
